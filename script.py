@@ -73,7 +73,33 @@ from draw import *
   jdyrlandweaver
   ==================== """
 def first_pass( commands ):
-        
+    framey = 1
+    basey = "filey"
+    vary = 0
+
+    foundf = 0
+    foundv = 0
+    foundb = 0
+    for command in commands:
+        if command[0] == "frames":
+            framey = command[1]
+            foundf = 1
+            
+        if command[0] == "basename":
+            basey = command[1]
+            foundb = 1
+            
+        if command[0] == "vary":
+            vary = command[1]
+            foundv = 1
+
+    if (foundv == 1 && foundf == 0):
+        quit
+
+    if (foundf == 1 && foundb == 0):
+        print "the file name is filey!"
+
+    second_pass(commands, framey)
 
 """======== second_pass( commands ) ==========
 
@@ -93,7 +119,9 @@ def first_pass( commands ):
   appropirate value. 
   ===================="""
 def second_pass( commands, num_frames ):
-
+    knobs = []
+    
+    
 
 def run(filename):
     """
@@ -201,4 +229,5 @@ def run(filename):
                 
             matrix_mult( stack[-1], t )
             stack[-1] = t
-            
+
+        
