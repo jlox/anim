@@ -75,11 +75,12 @@ from draw import *
 def first_pass( commands ):
     framey = 1
     basey = "filey"
-    vary = 0
 
     foundf = 0
     foundv = 0
     foundb = 0
+
+    shouldi = 0
     for command in commands:
         if command[0] == "frames":
             framey = command[1]
@@ -90,8 +91,9 @@ def first_pass( commands ):
             foundb = 1
             
         if command[0] == "vary":
-            vary = command[1]
             foundv = 1
+            if (command[3] - command[2] > 1):
+                shouldi = 1
 
     if (foundv == 1 && foundf == 0):
         quit
@@ -99,12 +101,13 @@ def first_pass( commands ):
     if (foundf == 1 && foundb == 0):
         print "the file name is filey!"
 
-    second_pass(commands, framey)
+    if shouldi = 1:
+        second_pass(commands, framey)
 
 """======== second_pass( commands ) ==========
 
   In order to set the knobs for animation, we need to keep
-  a seaprate value for each knob for each frame. We can do
+  a separate value for each knob for each frame. We can do
   this by using an array of dictionaries. Each array index
   will correspond to a frame (eg. knobs[0] would be the first
   frame, knobs[2] would be the 3rd frame and so on).
@@ -120,7 +123,13 @@ def first_pass( commands ):
   ===================="""
 def second_pass( commands, num_frames ):
     knobs = []
-    
+    for command in commands:
+        if command[0] == "vary":
+            frames = command[3] - command[2]
+            each = command[5]/frames
+            for frame in frames:
+                knobs[frame] = {"knobkname": each}
+                each = each + each
     
 
 def run(filename):
