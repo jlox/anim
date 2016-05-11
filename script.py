@@ -122,14 +122,17 @@ def first_pass( commands ):
   appropirate value. 
   ===================="""
 
+knobs = []
 def second_pass( commands, num_frames ):
     knobs = []
     for command in commands:
         if command[0] == "vary":
             framey = command[3] - command[2]
-            each = command[5]/framey
+            disty = command[5] - command[4]
+            each = disty/framey
             for frame in framey:
-                knobs[frame] = {command[1]: each}
+                #knobs[frame] = {command[1]: each}
+                knobs[frame][command[1]] = each
                 each = each + each
     
 
@@ -159,6 +162,9 @@ def run(filename):
                     stack.pop()
                     if not stack:
                         stack = [ tmp ]
+                        
+            if command[0] == "vary":
+                command[1] = knobs[i][command[1]]
 
             if command[0] == "push":
                 stack.append( stack[-1][:] )
