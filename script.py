@@ -58,7 +58,7 @@ from draw import *
   ==================== """
 def first_pass( commands):
     num_frames = 'def'
-    basename = 'default'
+    basename = 'filey'
     for command in commands:
         curr = command[0]
         if curr == "frames":
@@ -73,8 +73,8 @@ def first_pass( commands):
                 return
     if num_frames == 'def':
         num_frames = 1
-    if basename == 'default':
-        print "Basename has been set to default value 'default'"
+    if basename == 'filey':
+        print "Basename has been set to default value 'filey'"
     return [num_frames, basename]
             
 """======== second_pass( commands ) ==========
@@ -342,7 +342,7 @@ def run(filename):
             print "building frame " + str(i)
             save_extension(screen, "temp/" + basename + "%03d"%i + ".png")
 
-            tm = [(color[0] + 6 )%255, (color[1] + 3 )%255, (color[2] + 7 )%255]
+            tm = [255, 255, 0]
             color = tm
             tmp = new_matrix()
             ident( tmp )
