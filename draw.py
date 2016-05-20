@@ -28,6 +28,39 @@ def draw_polygons( points, screen, color ):
                        points[p][0], points[p][1], color )
         p+= 3
 
+        if (points[p][1] < points[p+1][1]):
+            if (points[p+1][1] < points[p+2][1]):
+                xB = points[p][0]
+                yB = points[p][1]
+                xM = points[p+1][0]
+                yM = points[p+1][1]
+                xT = points[p+2][0]
+                yT = points[p+2][1]
+            else:
+                xB = points[p][0]
+                yB = points[p][1]
+                xT = points[p+1][0]
+                yT = points[p+1][1]
+                xM = points[p+2][0]
+                yM = points[p+2][1]
+        elif (points[p+1][1] < points[p][1]):
+            if (points[p][1] < points[p+2][1]):
+                xM = points[p][0]
+                yM = points[p][1]
+                xB = points[p+1][0]
+                yB = points[p+1][1]
+                xT = points[p+2][0]
+                yT = points[p+2][1]
+            else:
+                xT = points[p][0]
+                yT = points[p][1]
+                xB = points[p+1][0]
+                yB = points[p+1][1]
+                xM = points[p+2][0]
+                yM = points[p+2][1]
+
+    while 
+
 
 
 def add_box( points, x, y, z, width, height, depth ):
@@ -288,7 +321,6 @@ def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
 
 def add_point( matrix, x, y, z=0 ):
     matrix.append( [x, y, z, 1] )
-
 
 def draw_line( screen, x0, y0, x1, y1, color ):
     dx = x1 - x0
