@@ -26,41 +26,63 @@ def draw_polygons( points, screen, color ):
                        points[p+2][0], points[p+2][1], color )
             draw_line( screen, points[p+2][0], points[p+2][1],
                        points[p][0], points[p][1], color )
-        p+= 3
+    
 
-        if (points[p][1] < points[p+1][1]):
+        if (points[p][1] < points[p+1][1] and points[p][1] < points[p+2][1]):
+            bx = points[p][0]
+            by = points[p][1]
             if (points[p+1][1] < points[p+2][1]):
-                xB = points[p][0]
-                yB = points[p][1]
-                xM = points[p+1][0]
-                yM = points[p+1][1]
-                xT = points[p+2][0]
-                yT = points[p+2][1]
+                mx = points[p+1][0]
+                my = points[p+1][1]
+                tx = points[p+2][0]
+                ty = points[p+2][1]
             else:
-                xB = points[p][0]
-                yB = points[p][1]
-                xT = points[p+1][0]
-                yT = points[p+1][1]
-                xM = points[p+2][0]
-                yM = points[p+2][1]
-        elif (points[p+1][1] < points[p][1]):
-            if (points[p][1] < points[p+2][1]):
-                xM = points[p][0]
-                yM = points[p][1]
-                xB = points[p+1][0]
-                yB = points[p+1][1]
-                xT = points[p+2][0]
-                yT = points[p+2][1]
+                tx = points[p+1][0]
+                ty = points[p+1][1]
+                mx = points[p+2][0]
+                my = points[p+2][1]
+        else if (points[p][1] > points[p+1][1] and points[p][1] < points[p+2][1]):
+            bx = points[p+1][0]
+            by = points[p+1][1]
+            mx = points[p][0]
+            my = points[p][1]
+            tx = points[p+2][0]
+            ty = points[p+2][1]
+        else if (points[p][1] > points[p+2][1] and points[p][1] < points[p+1][1]):
+            tx = points[p+1][0]
+            ty = points[p+1][1]
+            mx = points[p][0]
+            my = points[p][1]
+            bx = points[p+2][0]
+            by = points[p+2][1]
+        else:
+            tx = points[p][0]
+            ty = points[p][1]
+            if (points[p+1][1] < points[p+2][1]):
+                bx = points[p+1][0]
+                by = points[p+1][1]
+                mx = points[p+2][0]
+                my = points[p+2][1]
             else:
-                xT = points[p][0]
-                yT = points[p][1]
-                xB = points[p+1][0]
-                yB = points[p+1][1]
-                xM = points[p+2][0]
-                yM = points[p+2][1]
+                mx = points[p+1][0]
+                my = points[p+1][1]
+                bx = points[p+2][0]
+                by = points[p+2][1]
+        
 
-    while 
+        ny = by
+        if (bx < mx and bx < tx):
+            nx = bx
+        else if (mx < bx and mx < tx):
+            nx = mx
+        else:
+            nx = tx
 
+        d0 = (tx - bx)/(ty - by)
+        d1 =  (mx - bx)/(my - by)
+        while (ny < ty):
+            
+        p+= 3
 
 
 def add_box( points, x, y, z, width, height, depth ):
