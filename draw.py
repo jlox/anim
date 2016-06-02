@@ -27,7 +27,7 @@ def draw_polygons( points, screen, color ):
             draw_line( screen, points[p+2][0], points[p+2][1],
                        points[p][0], points[p][1], color )
     
-
+        """
         if (points[p][1] < points[p+1][1] and points[p][1] < points[p+2][1]):
             bx = points[p][0]
             by = points[p][1]
@@ -41,14 +41,14 @@ def draw_polygons( points, screen, color ):
                 ty = points[p+1][1]
                 mx = points[p+2][0]
                 my = points[p+2][1]
-        else if (points[p][1] > points[p+1][1] and points[p][1] < points[p+2][1]):
+        elif (points[p][1] > points[p+1][1] and points[p][1] < points[p+2][1]):
             bx = points[p+1][0]
             by = points[p+1][1]
             mx = points[p][0]
             my = points[p][1]
             tx = points[p+2][0]
             ty = points[p+2][1]
-        else if (points[p][1] > points[p+2][1] and points[p][1] < points[p+1][1]):
+        elif (points[p][1] > points[p+2][1] and points[p][1] < points[p+1][1]):
             tx = points[p+1][0]
             ty = points[p+1][1]
             mx = points[p][0]
@@ -73,14 +73,21 @@ def draw_polygons( points, screen, color ):
         ny = by
         if (bx < mx and bx < tx):
             nx = bx
-        else if (mx < bx and mx < tx):
+        elif (mx < bx and mx < tx):
             nx = mx
         else:
             nx = tx
 
+        nx0 = nx
+        nx1 = nx
         d0 = (tx - bx)/(ty - by)
         d1 =  (mx - bx)/(my - by)
         while (ny < ty):
+            draw_line(screen, nx0, ny, nx1, ny, color)
+            nx0 = nx0 + d0
+            nx1 = nx1 + d1
+            ny = ny + 1
+        """
             
         p+= 3
 
