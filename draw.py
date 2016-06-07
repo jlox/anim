@@ -1,7 +1,8 @@
 from display import *
 from matrix import *
-from gmath import calculate_dot
-from math import cos, sin, pi
+from gmath import *
+from math import cos, sin, pi, floor, pow
+from random import randint
 
 MAX_STEPS = 100
 
@@ -10,87 +11,86 @@ def add_polygon( points, x0, y0, z0, x1, y1, z1, x2, y2, z2 ):
     add_point( points, x1, y1, z1 )
     add_point( points, x2, y2, z2 )
     
-def draw_polygons( points, screen, color ):
-
+def draw_polygons( points, screen, color, z_buffer, point_sources, constants, shading_type):
     if len(points) < 3:
         print 'Need at least 3 points to draw a polygon!'
         return
 
     p = 0
+
     while p < len( points ) - 2:
 
         if calculate_dot( points, p ) < 0:
-            draw_line( screen, points[p][0], points[p][1],
-                       points[p+1][0], points[p+1][1], color )
-            draw_line( screen, points[p+1][0], points[p+1][1],
-                       points[p+2][0], points[p+2][1], color )
-            draw_line( screen, points[p+2][0], points[p+2][1],
-                       points[p][0], points[p][1], color )
-    
-        """
-        if (points[p][1] < points[p+1][1] and points[p][1] < points[p+2][1]):
-            bx = points[p][0]
-            by = points[p][1]
-            if (points[p+1][1] < points[p+2][1]):
-                mx = points[p+1][0]
-                my = points[p+1][1]
-                tx = points[p+2][0]
-                ty = points[p+2][1]
-            else:
-                tx = points[p+1][0]
-                ty = points[p+1][1]
-                mx = points[p+2][0]
-                my = points[p+2][1]
-        elif (points[p][1] > points[p+1][1] and points[p][1] < points[p+2][1]):
-            bx = points[p+1][0]
-            by = points[p+1][1]
-            mx = points[p][0]
-            my = points[p][1]
-            tx = points[p+2][0]
-            ty = points[p+2][1]
-        elif (points[p][1] > points[p+2][1] and points[p][1] < points[p+1][1]):
-            tx = points[p+1][0]
-            ty = points[p+1][1]
-            mx = points[p][0]
-            my = points[p][1]
-            bx = points[p+2][0]
-            by = points[p+2][1]
-        else:
-            tx = points[p][0]
-            ty = points[p][1]
-            if (points[p+1][1] < points[p+2][1]):
-                bx = points[p+1][0]
-                by = points[p+1][1]
-                mx = points[p+2][0]
-                my = points[p+2][1]
-            else:
-                mx = points[p+1][0]
-                my = points[p+1][1]
-                bx = points[p+2][0]
-                by = points[p+2][1]
-        
+            if shading_type == "wireframe":
+                draw_line( screen, points[p][0], points[p][1], points[p][2],
+                           points[p+1][0], points[p+1][1], points[p][2], color, z_buffer )
+                draw_line( screen, points[p+1][0], points[p+1][1], points[p+1][2],
+                           points[p+2][0], points[p+2][1], points[p+2][2], color, z_buffer)
+                draw_line( screen, points[p+2][0], points[p+2][1], points[p+2][2],
+                           points[p][0], points[p][1], points[p][2], color, z_buffer)
+                
+            elif shading_type == "flat":
+                c = []
+                
+                iambient = [color[x]*constants[x] for x in xrange(3)]
+                idiffuse = [0, 0, 0]
+                ispecular = [0, 0, 0]
+                
+                normal = normalize(calculate_normal(points[p+1][0]-points[p][0], points[p+1][1]-points[p][1], points[p+1][2]-points[p][2], points[p+2][0]-points[p+1][0], points[p+2][1]-points[p+1][1], points[p+2][2]-points[p+1][2]))
+                view = [0, 0, -1]
+                
+                for light in point_sources:
+                    l = normalize(light[0:3])
+                    
+                    diffuse_light = [light[x+3]*constants[x+3]*dot_product(normal, l) for x in xrange(3)]
+                    idiffuse = [x + y if y > 0 else 0 for x,y in zip(idiffuse, diffuse_light)]
+                    
+                    angle = pow(dot_product(sub_vectors(scalar_product(scalar_product(normal, dot_product(l, normal)), 2), l), view), 2)
+                    specular_light = [light[x+3]*constants[x+6]*angle for x in xrange(3)]
+                    ispecular = [x + y if y > 0 else 0 for x,y in zip(ispecular, specular_light)]
 
-        ny = by
-        if (bx < mx and bx < tx):
-            nx = bx
-        elif (mx < bx and mx < tx):
-            nx = mx
-        else:
-            nx = tx
+                c = [int(x + y + z) for x,y,z in zip(iambient, idiffuse, ispecular)]
 
-        nx0 = nx
-        nx1 = nx
-        d0 = (tx - bx)/(ty - by)
-        d1 =  (mx - bx)/(my - by)
-        while (ny < ty):
-            draw_line(screen, nx0, ny, nx1, ny, color)
-            nx0 = nx0 + d0
-            nx1 = nx1 + d1
-            ny = ny + 1
-        """
+                scanline_convert( points[p], points[p+1], points[p+2], screen, c, z_buffer)
             
-        p+= 3
+        p += 3
 
+def scanline_convert(p0, p1, p2, screen, color, z_buffer):
+    tri = sorted([p0, p1, p2], key = lambda p:p[1])
+    for p in tri:
+        for i in xrange(len(p)):
+            p[i] = floor(p[i])
+
+    TBx = float((tri[2][0]-tri[0][0]))/(tri[2][1]-tri[0][1])
+    TBz = float((tri[2][2]-tri[0][2]))/(tri[2][1]-tri[0][1])
+    if tri[2][1] != tri[1][1]:
+        TMx = float((tri[2][0]-tri[1][0]))/(tri[2][1]-tri[1][1])
+        TMz = float((tri[2][2]-tri[1][2]))/(tri[2][1]-tri[1][1])
+    if tri[1][1] != tri[0][1]:
+        MBx = float((tri[1][0]-tri[0][0]))/(tri[1][1]-tri[0][1])
+        MBz = float((tri[1][2]-tri[0][2]))/(tri[1][1]-tri[0][1])
+
+    if tri[0][1] != tri[1][1]:
+        x0 = tri[0][0]
+        z0 = tri[0][2]
+        x1 = tri[0][0]
+        z1 = tri[0][2]
+    else:
+        x0 = tri[0][0]
+        z0 = tri[0][2]
+        x1 = tri[1][0]
+        z1 = tri[1][2]
+        
+    for y in xrange(int(tri[0][1]), int(tri[2][1])):
+        if (y >= tri[1][1] and tri[0][1] != tri[1][1]) or (tri[0][1] == tri[1][1]):
+            x1 += TMx
+            z1 += TMz
+        else:
+            x1 += MBx
+            z1 += MBz
+        x0 += TBx
+        z0 += TBz
+        draw_line(screen, x0, y, z0, x1, y, z1, color, z_buffer)
 
 def add_box( points, x, y, z, width, height, depth ):
     x1 = x + width
@@ -334,14 +334,14 @@ def add_curve( points, x0, y0, x1, y1, x2, y2, x3, y3, step, curve_type ):
         y0 = y
         t+= step
 
-def draw_lines( matrix, screen, color ):
+def draw_lines( matrix, screen, color , z_buffer):
     if len( matrix ) < 2:
         print "Need at least 2 points to draw a line"
         
     p = 0
     while p < len( matrix ) - 1:
-        draw_line( screen, matrix[p][0], matrix[p][1],
-                   matrix[p+1][0], matrix[p+1][1], color )
+        draw_line( screen, matrix[p][0], matrix[p][1], matrix[p][2],
+                   matrix[p+1][0], matrix[p+1][1], matrix[p][2], color , z_buffer)
         p+= 2
 
 def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
@@ -351,71 +351,90 @@ def add_edge( matrix, x0, y0, z0, x1, y1, z1 ):
 def add_point( matrix, x, y, z=0 ):
     matrix.append( [x, y, z, 1] )
 
-def draw_line( screen, x0, y0, x1, y1, color ):
+def draw_line( screen, x0, y0, z0, x1, y1, z1, color, z_buffer ):
     dx = x1 - x0
     dy = y1 - y0
+    dz = z1 - z0
+    
     if dx + dy < 0:
         dx = 0 - dx
         dy = 0 - dy
+        dz = 0 - dz
         tmp = x0
         x0 = x1
         x1 = tmp
         tmp = y0
         y0 = y1
         y1 = tmp
-    
-    if dx == 0:
+        tmp = z0
+        z0 = z1
+        z1 = tmp
+
+    if dx == 0 and dy == 0:
+        plot(screen, color, x0, y0, max(z0, z1), z_buffer)
+    elif dx == 0:
         y = y0
+        z = z0
         while y <= y1:
-            plot(screen, color,  x0, y)
+            plot(screen, color,  x0, y, z, z_buffer)
             y = y + 1
+            z += dz/dy
     elif dy == 0:
         x = x0
+        z = z0
         while x <= x1:
-            plot(screen, color, x, y0)
+            plot(screen, color, x, y0, z, z_buffer)
             x = x + 1
+            z += dz/dx
     elif dy < 0:
         d = 0
         x = x0
         y = y0
+        z = z0
         while x <= x1:
-            plot(screen, color, x, y)
+            plot(screen, color, x, y, z, z_buffer)
             if d > 0:
                 y = y - 1
                 d = d - dx
             x = x + 1
+            z += dz/dx
             d = d - dy
     elif dx < 0:
         d = 0
         x = x0
         y = y0
+        z = z0
         while y <= y1:
-            plot(screen, color, x, y)
+            plot(screen, color, x, y, z, z_buffer)
             if d > 0:
                 x = x - 1
                 d = d - dy
             y = y + 1
+            z += dz/dy
             d = d - dx
     elif dx > dy:
         d = 0
         x = x0
         y = y0
+        z = z0
         while x <= x1:
-            plot(screen, color, x, y)
+            plot(screen, color, x, y, z, z_buffer)
             if d > 0:
                 y = y + 1
                 d = d - dx
             x = x + 1
+            z += dz/dx
             d = d + dy
     else:
         d = 0
         x = x0
         y = y0
+        z = z0
         while y <= y1:
-            plot(screen, color, x, y)
+            plot(screen, color, x, y, z, z_buffer)
             if d > 0:
                 x = x + 1
                 d = d - dy
             y = y + 1
+            z += dz/dy
             d = d + dx
-
